@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 1. Configuración de Base */
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html, body, #root {
+    height: 100%;
+    @apply antialiased text-slate-900;
+  }
+
+  body {
+    /* Fondo gris muy suave típico de aplicaciones empresariales */
+    @apply bg-slate-50 font-sans;
+    /* Aseguramos que la fuente Inter se aplique si se carga desde el HTML */
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* 2. Componentes Personalizados (Opcional pero recomendado) */
+@layer components {
+  /* Estilo para las barras de desplazamiento (Scrollbars) más finas */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-colors;
+  }
+
+  /* Clase para contenedores tipo "Card" de ERP */
+  .erp-card {
+    @apply bg-white rounded-3xl border border-slate-100 shadow-sm transition-all duration-300 hover:shadow-md;
+  }
+
+  /* Efecto de cristal para modales o headers (Glassmorphism ligero) */
+  .glass {
+    @apply bg-white/70 backdrop-blur-lg border border-white/40 shadow-xl shadow-slate-200/50;
+  }
+}
+
+/* 3. Utilidades Específicas */
+@layer utilities {
+  /* Para que el contenido no se pegue a los bordes en móviles */
+  .safe-padding {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Animación suave para cambios de stock o precios */
+  .animate-update {
+    animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Animación de entrada para las vistas */
+  .animate-fade-in-up {
+    animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes pulse-subtle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .8; }
+  }
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
