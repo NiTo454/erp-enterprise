@@ -1,6 +1,9 @@
 import { sql } from '@vercel/postgres';
 
 export default async function handler(req: any, res: any) {
+  // Desactivar caché en Vercel
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
   // Obtener ventas
   if (req.method === 'GET') {
     try {
@@ -14,10 +17,10 @@ export default async function handler(req: any, res: any) {
 
   // Realizar una venta
   if (req.method === 'POST') {
-    const { productId, productName, quantity, total } = req.body;
+    const { productId, productName, quantity, total, customerName } = req.body;
     try {
       await sql`UPDATE products SET stock = stock - ${quantity} WHERE id = ${productId}`;
-      await sql`INSERT INTO sales ("productId", "productName", quantity, total) VALUES (${productId}, ${productName}, ${quantity}, ${total})`;
+      await sql`INSERT INTO sales ("productId", "productName", quantity, total, "customerName") VALUES (${productId}, ${productName}, ${quantity}, ${total}, ${customerName || 'Público General'})`;
       return res.status(201).json({ message: 'Venta registrada con éxito' });
     } catch (error: any) {
       console.error('Error POST /api/sales:', error);

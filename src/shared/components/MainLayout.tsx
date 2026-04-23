@@ -1,9 +1,17 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingCart, BarChart3, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, BarChart3, Menu, X, LogOut } from 'lucide-react';
 import React, { useState } from 'react';
+import { useAuthStore } from '../../store/useAuthStore';
+import { LoginView } from '../../modules/auth/LoginView';
+import { ToastContainer } from './ToastContainer';
 
 export const MainLayout = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const { user, logout } = useAuthStore();
+
+  if (!user) {
+    return <LoginView />;
+  }
 
   const NavItem = ({ to, icon, children }: { to: string, icon: React.ReactNode, children: React.ReactNode }) => (
     <NavLink
@@ -41,6 +49,17 @@ export const MainLayout = () => {
           <NavItem to="/sales" icon={<ShoppingCart size={20} />}>Ventas</NavItem>
           <NavItem to="/finance" icon={<BarChart3 size={20} />}>Finanzas</NavItem>
         </nav>
+
+        {/* User Info & Logout */}
+        <div className="p-4 border-t border-slate-800">
+          <div className="flex items-center justify-between px-2 mb-4">
+            <span className="text-sm font-medium text-slate-400">Hola, <b className="text-white">{user.username}</b></span>
+            <span className="text-[10px] px-2 py-1 bg-indigo-500/20 text-indigo-300 rounded-lg uppercase font-bold tracking-wider">{user.role}</span>
+          </div>
+          <button onClick={logout} className="w-full flex items-center justify-center gap-2 p-3 text-red-400 hover:bg-red-500/10 rounded-xl font-medium transition-colors">
+            <LogOut size={18} /> Cerrar Sesión
+          </button>
+        </div>
       </aside>
 
       {/* Content */}
@@ -54,6 +73,7 @@ export const MainLayout = () => {
           <Outlet />
         </main>
       </div>
+      <ToastContainer />
     </div>
   );
 };

@@ -1,6 +1,9 @@
 import { sql } from '@vercel/postgres';
 
 export default async function handler(req: any, res: any) {
+  // Desactivar caché en Vercel
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
   // Obtener productos
   if (req.method === 'GET') {
     try {
@@ -38,8 +41,11 @@ export default async function handler(req: any, res: any) {
 
   // Eliminar producto
   if (req.method === 'DELETE') {
-    const { id } = req.query;
+    const id = req.query.id || (req.body && req.body.id);
     try {
+      // 1. Eliminar ventas del producto (para no romper la integridad referencial)
+      await sql`DELETE FROM sales WHERE "productId" = ${id}`;
+      // 2. Eliminar el producto principal
       await sql`DELETE FROM products WHERE id = ${id}`;
       return res.status(200).json({ message: 'Producto eliminado con éxito' });
     } catch (error: any) {

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useERPStore } from '../../store/useERPStore';
+import { useAuthStore } from '../../store/useAuthStore';
+import { useToastStore } from '../../store/useToastStore';
 import { useFormat } from '../../hooks/useFormat';
-import { Plus, X, Trash2, AlertTriangle, Edit2 } from 'lucide-react';
+import { Plus, X, Trash2, AlertTriangle, Edit2, Search } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
 export const InventoryView = () => {
@@ -10,7 +12,12 @@ export const InventoryView = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const { register, handleSubmit, reset } = useForm();
+
+  const user = useAuthStore(state => state.user);
+  const addToast = useToastStore(state => state.addToast);
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => { if(products.length === 0) initData(); }, []);
 
@@ -32,24 +39,53 @@ export const InventoryView = () => {
       price: Number(data.price),
       stock: Number(data.stock)
     };
-    if (editingProduct) {
-      await updateProduct({ ...editingProduct, ...payload });
-    } else {
-      await addProduct(payload);
+    try {
+      if (editingProduct) {
+        await updateProduct({ ...editingProduct, ...payload });
+        addToast('Producto actualizado exitosamente', 'success');
+      } else {
+        await addProduct(payload);
+        addToast('Producto guardado exitosamente', 'success');
+      }
+      handleCloseModal();
+    } catch (error) {
+      addToast('Error al guardar el producto', 'error');
     }
-    handleCloseModal();
   };
+
+  // Filtramos los productos según lo que el usuario escriba (por nombre o SKU)
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.sku.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 className="text-2xl font-bold text-slate-800">Control de Stock</h2>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2"
-        >
-          <Plus size={20} /> Nuevo Producto
-        </button>
+
+        <div className="flex gap-4 w-full sm:w-auto">
+          <div className="relative flex-1 sm:min-w-[280px]">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search size={18} className="text-slate-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Buscar producto o SKU..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-sm shadow-sm"
+            />
+          </div>
+          {isAdmin && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 whitespace-nowrap shadow-sm"
+            >
+              <Plus size={20} /> <span className="hidden sm:inline">Nuevo Producto</span><span className="sm:hidden">Nuevo</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-x-auto">
@@ -64,7 +100,7 @@ export const InventoryView = () => {
             </tr>
           </thead>
           <tbody>
-            {products.map(p => (
+            {filteredProducts.map(p => (
               <tr key={p.id} className="border-b last:border-0 border-gray-50 hover:bg-slate-50 transition-colors">
                 <td className="p-5 font-medium text-slate-800">{p.name}</td>
                 <td className="p-5 text-slate-500 text-sm">{p.sku}</td>
@@ -75,25 +111,38 @@ export const InventoryView = () => {
                   </span>
                 </td>
                 <td className="p-5 text-right flex items-center justify-end gap-2">
-                  <button
-                    onClick={() => handleEdit(p)}
-                    disabled={isLoading}
-                    className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-50"
-                    title="Editar producto"
-                  >
-                    <Edit2 size={18} />
-                  </button>
-                  <button
-                    onClick={() => setProductToDelete(p.id)}
-                    disabled={isLoading}
-                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                    title="Eliminar producto"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                  {isAdmin ? (
+                    <>
+                      <button
+                        onClick={() => handleEdit(p)}
+                        disabled={isLoading}
+                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-50"
+                        title="Editar producto"
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                      <button
+                        onClick={() => setProductToDelete(p.id)}
+                        disabled={isLoading}
+                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                        title="Eliminar producto"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </>
+                  ) : (
+                    <span className="text-xs text-slate-400 font-medium px-2 bg-slate-100 rounded-lg py-1">Solo lectura</span>
+                  )}
                 </td>
               </tr>
             ))}
+            {filteredProducts.length === 0 && (
+              <tr>
+                <td colSpan={5} className="p-8 text-center text-slate-500 italic">
+                  No se encontraron productos que coincidan con la búsqueda.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -168,8 +217,14 @@ export const InventoryView = () => {
               </button>
               <button
                 onClick={async () => {
-                  await deleteProduct(productToDelete);
-                  setProductToDelete(null);
+                  try {
+                    await deleteProduct(productToDelete);
+                    addToast('Producto eliminado correctamente', 'success');
+                  } catch (error) {
+                    addToast('Error al intentar eliminar el producto', 'error');
+                  } finally {
+                    setProductToDelete(null);
+                  }
                 }}
                 disabled={isLoading}
                 className="flex-1 bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition-colors disabled:bg-red-400"

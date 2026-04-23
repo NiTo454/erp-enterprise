@@ -17,5 +17,5 @@ export interface Sale extends BaseEntity {
   productName: string;
   quantity: number;
   total: number;
-  date: string;
+  customerName?: string;
 }

@@ -5,35 +5,42 @@ interface ERPState {
   products: Product[];
   sales: Sale[];
   isLoading: boolean;
+  sessionStartDate: string;
   initData: () => Promise<void>;
-  processSale: (productId: string, quantity: number) => Promise<void>;
+  processSale: (productId: string, quantity: number, customerName?: string) => Promise<void>;
   addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
   updateProduct: (product: Product) => Promise<void>;
+  startNewDay: () => Promise<void>;
 }
 
 export const useERPStore = create<ERPState>()((set, get) => ({
   products: [],
   sales: [],
   isLoading: false,
+  sessionStartDate: new Date(new Date().setHours(0,0,0,0)).toISOString(), // Valor por defecto temporal
 
   initData: async () => {
     set({ isLoading: true });
     try {
-      const [productsRes, salesRes] = await Promise.all([
-        fetch('/api/products'),
-        fetch('/api/sales')
+      const reqOpts: RequestInit = { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } };
+      const [productsRes, salesRes, settingsRes] = await Promise.all([
+        fetch('/api/products', reqOpts),
+        fetch('/api/sales', reqOpts),
+        fetch('/api/settings', reqOpts)
       ]);
       const products = await productsRes.json();
       const sales = await salesRes.json();
-      set({ products, sales, isLoading: false });
+      const settings = await settingsRes.json();
+
+      set({ products, sales, sessionStartDate: settings.sessionStartDate, isLoading: false });
     } catch (error) {
-      console.error("Error al cargar los datos desde Postgres:", error);
+      console.error("Error al cargar los datos:", error);
       set({ isLoading: false });
     }
   },
 
-  processSale: async (productId, quantity) => {
+  processSale: async (productId, quantity, customerName = 'Público General') => {
     const product = get().products.find(p => p.id === productId);
     if (!product || product.stock < quantity) return;
 
@@ -47,7 +54,8 @@ export const useERPStore = create<ERPState>()((set, get) => ({
           productId: product.id,
           productName: product.name,
           quantity,
-          total: product.price * quantity
+          total: product.price * quantity,
+          customerName
         })
       });
       if (!res.ok) throw new Error('Error al procesar la venta');
@@ -104,4 +112,24 @@ export const useERPStore = create<ERPState>()((set, get) => ({
       set({ isLoading: false });
     }
   },
+
+  startNewDay: async () => {
+    // Sumamos 1 segundo para garantizar que supere la hora exacta de cualquier venta anterior
+    const now = new Date();
+    now.setSeconds(now.getSeconds() + 1);
+    const sessionStart = now.toISOString();
+
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionStartDate: sessionStart })
+      });
+      if (!res.ok) throw new Error('Error al guardar en base de datos');
+      set({ sessionStartDate: sessionStart });
+    } catch (error) {
+      console.error("Error al iniciar nuevo día:", error);
+      throw error; // Lanzamos el error para que la interfaz muestre el Toast rojo
+    }
+  }
 }));
