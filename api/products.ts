@@ -6,8 +6,9 @@ export default async function handler(req: any, res: any) {
     try {
       const { rows } = await sql`SELECT * FROM products ORDER BY "createdAt" DESC`;
       return res.status(200).json(rows);
-    } catch (error) {
-      return res.status(500).json({ error: 'Error fetching products' });
+    } catch (error: any) {
+      console.error('Error GET /api/products:', error);
+      return res.status(500).json({ error: 'Error fetching products', details: error.message });
     }
   }
 
@@ -17,8 +18,9 @@ export default async function handler(req: any, res: any) {
     try {
       await sql`INSERT INTO products (sku, name, price, stock, category) VALUES (${sku}, ${name}, ${price}, ${stock}, ${category})`;
       return res.status(201).json({ message: 'Producto creado con éxito' });
-    } catch (error) {
-      return res.status(500).json({ error: 'Error creating product' });
+    } catch (error: any) {
+      console.error('Error POST /api/products:', error);
+      return res.status(500).json({ error: 'Error creating product', details: error.message });
     }
   }
 
@@ -28,8 +30,9 @@ export default async function handler(req: any, res: any) {
     try {
       await sql`UPDATE products SET sku = ${sku}, name = ${name}, price = ${price}, stock = ${stock}, category = ${category} WHERE id = ${id}`;
       return res.status(200).json({ message: 'Producto actualizado con éxito' });
-    } catch (error) {
-      return res.status(500).json({ error: 'Error updating product' });
+    } catch (error: any) {
+      console.error('Error PUT /api/products:', error);
+      return res.status(500).json({ error: 'Error updating product', details: error.message });
     }
   }
 
@@ -39,8 +42,9 @@ export default async function handler(req: any, res: any) {
     try {
       await sql`DELETE FROM products WHERE id = ${id}`;
       return res.status(200).json({ message: 'Producto eliminado con éxito' });
-    } catch (error) {
-      return res.status(500).json({ error: 'Error deleting product' });
+    } catch (error: any) {
+      console.error('Error DELETE /api/products:', error);
+      return res.status(500).json({ error: 'Error deleting product', details: error.message });
     }
   }
 

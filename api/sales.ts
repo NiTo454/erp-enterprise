@@ -6,8 +6,9 @@ export default async function handler(req: any, res: any) {
     try {
       const { rows } = await sql`SELECT * FROM sales ORDER BY "createdAt" DESC`;
       return res.status(200).json(rows);
-    } catch (error) {
-      return res.status(500).json({ error: 'Error fetching sales' });
+    } catch (error: any) {
+      console.error('Error GET /api/sales:', error);
+      return res.status(500).json({ error: 'Error fetching sales', details: error.message });
     }
   }
 
@@ -18,8 +19,9 @@ export default async function handler(req: any, res: any) {
       await sql`UPDATE products SET stock = stock - ${quantity} WHERE id = ${productId}`;
       await sql`INSERT INTO sales ("productId", "productName", quantity, total) VALUES (${productId}, ${productName}, ${quantity}, ${total})`;
       return res.status(201).json({ message: 'Venta registrada con éxito' });
-    } catch (error) {
-      return res.status(500).json({ error: 'Error processing sale' });
+    } catch (error: any) {
+      console.error('Error POST /api/sales:', error);
+      return res.status(500).json({ error: 'Error processing sale', details: error.message });
     }
   }
 
