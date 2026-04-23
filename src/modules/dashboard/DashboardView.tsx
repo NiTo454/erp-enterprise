@@ -15,8 +15,8 @@ export const DashboardView = () => {
     <div className="space-y-8">
       <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-8 rounded-3xl text-white shadow-lg shadow-indigo-200 flex items-center justify-between">
         <div>
-          <h2 className="text-4xl font-black mb-2">Panel General</h2>
-          <p className="text-indigo-100 opacity-90 text-lg">Bienvenido de nuevo. Aquí tienes el estado de tu empresa.</p>
+          <h2 className="text-3xl md:text-4xl font-black mb-2">Panel General</h2>
+          <p className="text-indigo-100 opacity-90 text-base md:text-lg">Bienvenido de nuevo. Aquí tienes el estado de tu empresa.</p>
         </div>
       </div>
 

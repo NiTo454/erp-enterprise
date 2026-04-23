@@ -52,8 +52,8 @@ export const InventoryView = () => {
         </button>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-        <table className="w-full text-left">
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-x-auto">
+        <table className="w-full text-left min-w-[700px]">
           <thead className="bg-slate-50 border-b border-gray-100">
             <tr>
               <th className="p-5 text-sm font-bold text-slate-700">Producto</th>
@@ -100,8 +100,8 @@ export const InventoryView = () => {
 
       {/* Modal para Agregar Producto */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 glass animate-fade-in-up">
-          <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-fade-in-up">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl relative">
             <button
               onClick={handleCloseModal}
               className="absolute top-6 right-6 text-slate-400 hover:text-slate-600"
@@ -150,8 +150,8 @@ export const InventoryView = () => {
 
       {/* Modal de Confirmación para Eliminar */}
       {productToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 glass animate-fade-in-up">
-          <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl relative text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-fade-in-up">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-sm shadow-2xl relative text-center">
             <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
               <AlertTriangle className="h-8 w-8 text-red-600" />
             </div>
